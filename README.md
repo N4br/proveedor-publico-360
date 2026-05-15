@@ -9,7 +9,7 @@ MVP full-stack para LEXUM orientado a empresas proveedoras que quieren vender al
 - DB/Auth/Storage: Supabase/PostgreSQL, Supabase Auth y Storage privado.
 - IA: capa backend preparada para OpenAI u otro LLM, con mock seguro por defecto.
 - PDF: PDFKit en backend.
-- Jobs: preparado para cron externo o scheduler Render/Vercel/Supabase Edge Functions.
+- Jobs: preparado para Vercel Cron o Supabase Edge Functions.
 - Adjuntos Mercado Publico: extractor modular experimental con fallback manual.
 
 ## Instalacion local
@@ -21,7 +21,8 @@ npm run dev
 ```
 
 Frontend: `http://localhost:5173`  
-API: `http://localhost:4000/health`
+API local: `http://localhost:4000/health`  
+API via frontend/Vercel: `/api/health`
 
 Para usar Supabase:
 
@@ -55,13 +56,14 @@ Por eso el MVP declara tecnicamente: obtener datos publicos, intentar recuperar 
 - Logs evitan imprimir tickets, API keys o tokens.
 - El motor IA separa hechos de recomendaciones y marca conclusiones juridicas como preliminares.
 
-## Deploy sugerido
+## Deploy gratis en Vercel
 
-- Web: Vercel usando `vercel.json` en la raiz. Build: `npm run build -w apps/web`. Output: `apps/web/dist`.
-- API: Render usando `render.yaml` en la raiz. Build: `npm run build -w apps/api`. Start: `npm run start -w apps/api`.
+- Frontend: Vercel construye `apps/web` con `npm run build:vercel` y publica `apps/web/dist`.
+- API: Vercel expone `api/[...path].ts` como Serverless Function, envolviendo la API Fastify existente.
+- Endpoints: en produccion quedan bajo `/api/*`; por ejemplo `/api/health`.
 - Supabase: proyecto administrado con migraciones y buckets privados.
 - DNS:
   - landing comercial: `lexumabogados.cl/proveedor-publico-360`
   - portal/app: `proveedor.lexum.cl` o `portal.lexum.cl`
 
-Ver detalles en [docs/architecture.md](docs/architecture.md) y [docs/mercado-publico-adjuntos.md](docs/mercado-publico-adjuntos.md).
+Ver pasos exactos en [docs/vercel-deploy.md](docs/vercel-deploy.md), arquitectura en [docs/architecture.md](docs/architecture.md) y adjuntos en [docs/mercado-publico-adjuntos.md](docs/mercado-publico-adjuntos.md).

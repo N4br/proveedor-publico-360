@@ -1,7 +1,12 @@
 {
   "installCommand": "npm install",
-  "buildCommand": "npm run build -w apps/web",
+  "buildCommand": "npm run build:vercel",
   "outputDirectory": "apps/web/dist",
+  "functions": {
+    "api/[...path].ts": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",

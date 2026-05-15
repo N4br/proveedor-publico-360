@@ -44,16 +44,16 @@ La autorizacion fina vive en Supabase RLS. El backend puede usar service role pa
 
 ## Deploy
 
-### Vercel + Render + Supabase
+### Vercel + Supabase
 
-- `apps/web` en Vercel con `VITE_API_URL=https://api.proveedor.lexum.cl/api`.
-- `apps/api` en Render como Web Service Node 20.
+- `apps/web` en Vercel con `VITE_API_URL=/api`.
+- `api/[...path].ts` en Vercel como Serverless Function que envuelve `apps/api/src/server.ts`.
 - Supabase para Auth/Postgres/Storage.
-- Cron Render o GitHub Actions para radar mensual.
+- Vercel Cron, Supabase Edge Functions o GitHub Actions para radar mensual.
 
 ### Consideracion Playwright
 
-La extraccion headless de adjuntos requiere runtime con navegadores instalados. Render/Fly/VPS son mas adecuados que serverless puro. El sistema queda disenado para que el extractor pueda correr en worker separado sin cambiar Sala de Oferta.
+La extraccion headless de adjuntos con Playwright no es ideal en Vercel gratis por tamano, duracion y runtime serverless. En el despliegue gratuito queda deshabilitada por defecto con `MERCADO_PUBLICO_ALLOW_HEADLESS_ATTACHMENTS=false`; el extractor HTML detecta captcha/sesion y activa carga manual.
 
 ## Variables de entorno criticas
 
@@ -61,7 +61,7 @@ La extraccion headless de adjuntos requiere runtime con navegadores instalados. 
 - `OPENAI_API_KEY`: backend only.
 - `SUPABASE_SERVICE_ROLE_KEY`: backend only.
 - `VITE_SUPABASE_ANON_KEY`: puede ir al browser.
-- `VITE_API_URL`: URL publica de API.
+- `VITE_API_URL`: usar `/api` para Vercel same-origin.
 
 ## Limites del MVP
 

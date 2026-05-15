@@ -39,11 +39,14 @@ export async function buildServer() {
     }
   });
 
-  app.get("/health", async () => ({
+  const healthPayload = {
     ok: true,
     service: "proveedor-publico-360-api",
     version: "0.1.0"
-  }));
+  };
+
+  app.get("/health", async () => healthPayload);
+  app.get("/api/health", async () => healthPayload);
 
   await app.register(companyRoutes, { prefix: "/api" });
   await app.register(documentsRoutes, { prefix: "/api" });
