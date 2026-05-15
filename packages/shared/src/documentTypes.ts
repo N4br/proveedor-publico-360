@@ -1,4 +1,4 @@
-import type { DocumentTypeKey } from "./types";
+import type { DocumentTypeKey } from "./types.js";
 
 export type DocumentTypeDefinition = {
   id: DocumentTypeKey;

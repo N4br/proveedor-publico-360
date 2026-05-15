@@ -7,7 +7,7 @@ import type {
   ProviderScoreCriterion,
   ProviderScoreResult,
   TrafficLight
-} from "./types";
+} from "./types.js";
 
 export type ScoreConfig = {
   identity: number;

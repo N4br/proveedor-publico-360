@@ -1,4 +1,4 @@
-import type { PlanCode } from "./types";
+import type { PlanCode } from "./types.js";
 
 export type CommercialPlan = {
   code: PlanCode;

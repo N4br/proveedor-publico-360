@@ -1,6 +1,6 @@
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
-import Fastify from "fastify";
+import Fastify, { type FastifyError } from "fastify";
 import { env } from "./env.js";
 import { analysisRoutes } from "./routes/analysis.routes.js";
 import { companyRoutes } from "./routes/company.routes.js";
@@ -54,7 +54,7 @@ export async function buildServer() {
   await app.register(reportsRoutes, { prefix: "/api" });
   await app.register(radarRoutes, { prefix: "/api" });
 
-  app.setErrorHandler((error, request, reply) => {
+  app.setErrorHandler((error: FastifyError, request, reply) => {
     request.log.error({ err: error }, "request failed");
     const statusCode = error.statusCode && error.statusCode >= 400 ? error.statusCode : 500;
     const message = statusCode >= 500 ? "Error interno del servidor" : error.message;

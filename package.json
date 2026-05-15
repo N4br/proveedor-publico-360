@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "description": "MVP profesional para diagnostico, carpeta documental, radar y Sala de Oferta de Proveedor Publico 360.",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
