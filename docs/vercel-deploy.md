@@ -7,10 +7,10 @@ Este repo esta preparado para desplegar frontend y API en Vercel sin Render.
 - Frontend: `apps/web`.
 - Build frontend: `npm run build:vercel`.
 - Output frontend: `apps/web/dist`.
-- API serverless: `api/[...path].ts`.
+- API serverless: `api/index.ts`.
 - Health check publico: `/api/health`.
 
-La funcion serverless envuelve la API Fastify existente en `apps/api/src/server.ts`, por lo que las rutas se mantienen bajo `/api/*` y el frontend puede seguir usando `VITE_API_URL=/api`.
+La funcion serverless envuelve la API Fastify existente en `apps/api/src/server.ts`. Vercel reescribe `/api/:path*` hacia `/api?path=:path*`, la funcion reconstruye la URL interna y Fastify recibe rutas bajo `/api/*`.
 
 ## Pasos
 

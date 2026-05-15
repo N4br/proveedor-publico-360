@@ -47,7 +47,7 @@ La autorizacion fina vive en Supabase RLS. El backend puede usar service role pa
 ### Vercel + Supabase
 
 - `apps/web` en Vercel con `VITE_API_URL=/api`.
-- `api/[...path].ts` en Vercel como Serverless Function que envuelve `apps/api/src/server.ts`.
+- `api/index.ts` en Vercel como Serverless Function unica que envuelve `apps/api/src/server.ts`.
 - Supabase para Auth/Postgres/Storage.
 - Vercel Cron, Supabase Edge Functions o GitHub Actions para radar mensual.
 

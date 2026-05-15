@@ -59,7 +59,7 @@ Por eso el MVP declara tecnicamente: obtener datos publicos, intentar recuperar 
 ## Deploy gratis en Vercel
 
 - Frontend: Vercel construye `apps/web` con `npm run build:vercel` y publica `apps/web/dist`.
-- API: Vercel expone `api/[...path].ts` como Serverless Function, envolviendo la API Fastify existente.
+- API: Vercel expone `api/index.ts` como Serverless Function unica, con rewrites de `/api/:path*` hacia la API Fastify existente.
 - Endpoints: en produccion quedan bajo `/api/*`; por ejemplo `/api/health`.
 - Supabase: proyecto administrado con migraciones y buckets privados.
 - DNS:
