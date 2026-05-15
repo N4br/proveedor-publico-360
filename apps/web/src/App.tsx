@@ -114,6 +114,7 @@ export default function App() {
     { documentTypeId: "fichas_tecnicas", fileName: "ficha-servicio.pdf", status: "requiere_revision" }
   ]);
   const [tender, setTender] = useState<TenderSummary | null>(null);
+  const [tenderRoomId, setTenderRoomId] = useState<string | null>(null);
   const [extraction, setExtraction] = useState<AttachmentExtractionResult | null>(null);
   const [analysis, setAnalysis] = useState<TenderAnalysisResult | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -242,6 +243,7 @@ export default function App() {
     setMessage(null);
     setAnalysis(null);
     setExtraction(null);
+    setTenderRoomId(null);
     try {
       const response = await apiRequest<{ data: TenderSummary }>(`/tenders/${encodeURIComponent(code)}`, {}, token);
       setTender(response.data);
@@ -262,11 +264,12 @@ export default function App() {
     setBusy("room");
     setMessage(null);
     try {
-      const response = await apiRequest<{ data: { tender: TenderSummary; extraction: AttachmentExtractionResult; fallbackRequired: boolean } }>(
+      const response = await apiRequest<{ data: { id?: string; tender: TenderSummary; extraction: AttachmentExtractionResult; fallbackRequired: boolean } }>(
         "/tender-rooms",
         { method: "POST", body: JSON.stringify({ companyId: company.id, tenderCode: code }) },
         token
       );
+      setTenderRoomId(response.data.id ?? null);
       setTender(response.data.tender);
       setExtraction(response.data.extraction);
       setMessage(response.data.fallbackRequired ? "Sala creada con fallback manual de documentos." : "Sala creada con adjuntos recuperados.");
@@ -284,11 +287,23 @@ export default function App() {
     try {
       const response = await apiRequest<{ data: TenderAnalysisResult }>(
         "/analyze-tender-documents",
-        { method: "POST", body: JSON.stringify({ tender, documents }) },
+        {
+          method: "POST",
+          body: JSON.stringify({
+            tender,
+            documents,
+            tenderRoomId,
+            persist: Boolean(tenderRoomId)
+          })
+        },
         token
       );
       setAnalysis(response.data);
-      setMessage("Analisis preliminar generado.");
+      setMessage(
+        tenderRoomId
+          ? "Análisis preliminar generado y guardado en Sala de Oferta."
+          : "Análisis preliminar generado sin guardar. Activa primero una Sala de Oferta para persistirlo."
+      );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "No se pudo generar analisis.");
     } finally {
