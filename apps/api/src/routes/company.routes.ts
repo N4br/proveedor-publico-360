@@ -24,9 +24,31 @@ const companySchema = z.object({
 
 export async function companyRoutes(app: FastifyInstance) {
   app.get("/companies", async (request) => {
-    await getUserContext(request);
+    const user = await getUserContext(request);
     if (!isSupabaseConfigured()) return { data: [] };
-    const { data, error } = await getSupabaseAdmin().from("companies").select("*").order("created_at", { ascending: false });
+    const supabase = getSupabaseAdmin();
+
+    if (user.role === "admin" || user.role === "revisor_lexum") {
+      const { data, error } = await supabase.from("companies").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return { data };
+    }
+
+    const { data: memberships, error: membershipsError } = await supabase
+      .from("company_members")
+      .select("company_id")
+      .eq("user_id", user.id)
+      .eq("status", "active");
+    if (membershipsError) throw membershipsError;
+
+    const companyIds = memberships?.map((membership) => membership.company_id).filter(Boolean) ?? [];
+    if (!companyIds.length) return { data: [] };
+
+    const { data, error } = await supabase
+      .from("companies")
+      .select("*")
+      .in("id", companyIds)
+      .order("created_at", { ascending: false });
     if (error) throw error;
     return { data };
   });

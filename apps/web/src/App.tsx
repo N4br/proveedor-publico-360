@@ -37,6 +37,71 @@ const initialCompany: CompanyProfile = {
   observaciones: "Perfil de demo editable."
 };
 
+const emptyAuthenticatedCompany: CompanyProfile = {
+  razonSocial: "",
+  rut: "",
+  regiones: [],
+  inscritaRegistroProveedores: false,
+  haVendidoEstado: false
+};
+
+type CompanyRow = {
+  id?: string;
+  razon_social?: string | null;
+  razonSocial?: string;
+  rut?: string | null;
+  nombre_fantasia?: string | null;
+  nombreFantasia?: string;
+  rubro?: string | null;
+  productos_servicios?: string | null;
+  productosServicios?: string;
+  regiones?: string[] | null;
+  capacidad_operativa?: string | null;
+  capacidadOperativa?: string;
+  experiencia_previa?: string | null;
+  experienciaPrevia?: string;
+  inscrita_registro_proveedores?: boolean | null;
+  inscritaRegistroProveedores?: boolean;
+  ha_vendido_estado?: boolean | null;
+  haVendidoEstado?: boolean;
+  monto_aproximado?: number | string | null;
+  montoAproximado?: number;
+  contacto_principal?: string | null;
+  contactoPrincipal?: string;
+  correo?: string | null;
+  telefono?: string | null;
+  observaciones?: string | null;
+};
+
+function mapCompanyRow(row: CompanyRow): CompanyProfile {
+  const rawMonto = row.monto_aproximado ?? row.montoAproximado;
+  const montoAproximado =
+    typeof rawMonto === "string" ? Number(rawMonto) : typeof rawMonto === "number" ? rawMonto : undefined;
+
+  return {
+    id: row.id,
+    razonSocial: row.razon_social ?? row.razonSocial ?? "",
+    rut: row.rut ?? "",
+    nombreFantasia: row.nombre_fantasia ?? row.nombreFantasia ?? "",
+    rubro: row.rubro ?? "",
+    productosServicios: row.productos_servicios ?? row.productosServicios ?? "",
+    regiones: row.regiones ?? [],
+    capacidadOperativa: row.capacidad_operativa ?? row.capacidadOperativa ?? "",
+    experienciaPrevia: row.experiencia_previa ?? row.experienciaPrevia ?? "",
+    inscritaRegistroProveedores: row.inscrita_registro_proveedores ?? row.inscritaRegistroProveedores ?? false,
+    haVendidoEstado: row.ha_vendido_estado ?? row.haVendidoEstado ?? false,
+    montoAproximado: Number.isFinite(montoAproximado) ? montoAproximado : undefined,
+    contactoPrincipal: row.contacto_principal ?? row.contactoPrincipal ?? "",
+    correo: row.correo ?? "",
+    telefono: row.telefono ?? "",
+    observaciones: row.observaciones ?? ""
+  };
+}
+
+function hasRealCompanyId(companyId?: string) {
+  return Boolean(companyId && companyId !== "local-company");
+}
+
 export type ActiveView = "inicio" | "empresa" | "carpeta" | "sala";
 
 export default function App() {
@@ -64,20 +129,59 @@ export default function App() {
   const score = useMemo(() => calculateProviderScore(company, documents), [company, documents]);
   const token = session?.access_token ?? null;
 
+  useEffect(() => {
+    if (!token) {
+      setCompany(initialCompany);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadCompanies() {
+      setBusy("companies");
+      setMessage(null);
+      try {
+        const response = await apiRequest<{ data: CompanyRow[] }>("/companies", {}, token);
+        if (cancelled) return;
+
+        const firstCompany = response.data?.[0];
+        if (firstCompany) {
+          setCompany(mapCompanyRow(firstCompany));
+        } else {
+          setCompany(emptyAuthenticatedCompany);
+          setMessage("No hay empresa guardada. Completa y guarda el perfil antes de activar una Sala de Oferta.");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setCompany(emptyAuthenticatedCompany);
+          setMessage(error instanceof Error ? error.message : "No se pudo cargar la empresa guardada.");
+        }
+      } finally {
+        if (!cancelled) setBusy(null);
+      }
+    }
+
+    void loadCompanies();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
   async function saveCompany(nextCompany: CompanyProfile) {
     setBusy("company");
     setMessage(null);
     try {
       setCompany(nextCompany);
       if (token) {
-        const response = await apiRequest<{ data: unknown }>(
-          nextCompany.id && nextCompany.id !== "local-company" ? `/companies/${nextCompany.id}` : "/companies",
-          { method: nextCompany.id && nextCompany.id !== "local-company" ? "PUT" : "POST", body: JSON.stringify(nextCompany) },
+        const isExistingCompany = hasRealCompanyId(nextCompany.id);
+        const response = await apiRequest<{ data: CompanyRow }>(
+          isExistingCompany ? `/companies/${nextCompany.id}` : "/companies",
+          { method: isExistingCompany ? "PUT" : "POST", body: JSON.stringify(nextCompany) },
           token
         );
         setMessage("Perfil empresa guardado.");
-        const row = response.data as { id?: string };
-        if (row.id) setCompany({ ...nextCompany, id: row.id });
+        setCompany(mapCompanyRow(response.data));
       } else {
         setMessage("Perfil actualizado en modo local.");
       }
@@ -92,7 +196,7 @@ export default function App() {
     setBusy("document");
     setMessage(null);
     try {
-      if (token && company.id && company.id !== "local-company") {
+      if (token && hasRealCompanyId(company.id)) {
         const form = new FormData();
         form.append("file", input.file);
         form.append("documentTypeId", input.documentTypeId);
@@ -150,12 +254,17 @@ export default function App() {
   }
 
   async function createTenderRoom(code: string) {
+    if (!hasRealCompanyId(company.id)) {
+      setMessage("Primero debes guardar una empresa real antes de activar la Sala de Oferta.");
+      return;
+    }
+
     setBusy("room");
     setMessage(null);
     try {
       const response = await apiRequest<{ data: { tender: TenderSummary; extraction: AttachmentExtractionResult; fallbackRequired: boolean } }>(
         "/tender-rooms",
-        { method: "POST", body: JSON.stringify({ companyId: company.id ?? "local-company", tenderCode: code }) },
+        { method: "POST", body: JSON.stringify({ companyId: company.id, tenderCode: code }) },
         token
       );
       setTender(response.data.tender);
