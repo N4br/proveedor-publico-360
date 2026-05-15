@@ -1,0 +1,30 @@
+{
+  "name": "proveedor-publico-360",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MVP profesional para diagnostico, carpeta documental, radar y Sala de Oferta de Proveedor Publico 360.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "build": "npm run build -ws --if-present",
+    "typecheck": "npm run typecheck -ws --if-present",
+    "test": "vitest run",
+    "test:mp": "npm run test:mp -w apps/api",
+    "lint": "npm run lint -ws --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "concurrently": "^8.2.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  },
+  "engines": {
+    "node": ">=20.11"
+  }
+}
